@@ -18,22 +18,22 @@ export default function ServerAccess() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#1763B6] to-[#0A3D78] text-white py-20 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/30 border border-blue-400/30 rounded-full text-blue-100 text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-sm">
-             <Server className="w-4 h-4" /> Server Access
+      <section className="bg-gradient-to-br from-[#1763B6] to-[#0A3D78] text-white py-24 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/30 border border-blue-400/30 rounded-full text-blue-100 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-sm">
+             <Server className="w-3.5 h-3.5" /> SAP Server Access
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight mb-6">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-extrabold tracking-tight mb-5 leading-tight">
             {config.hero.title}
           </h1>
-          <p className="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto mb-10 leading-relaxed">
+          <p className="text-base md:text-lg text-blue-100/90 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
             {config.hero.subtitle}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#plans" className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/25">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <a href="#plans" className="inline-flex items-center justify-center px-7 py-3.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-orange-500/30">
               View Access Plans
             </a>
-            <a href="#contact" className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl backdrop-blur-md transition-all border border-white/20">
+            <a href="#contact" className="inline-flex items-center justify-center px-7 py-3.5 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-xl backdrop-blur-md transition-all border border-white/20">
               Contact Support
             </a>
           </div>
@@ -72,11 +72,11 @@ export default function ServerAccess() {
       </section>
 
       {/* Pricing Plans */}
-      <section id="plans" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <section id="plans" className="py-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <div>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-display font-extrabold text-slate-800 tracking-tight">Access Plans (Indian Users)</h2>
-            <p className="text-slate-500 mt-4 max-w-2xl mx-auto">Choose a plan that fits your practice schedule.</p>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-display font-extrabold text-slate-800 tracking-tight">Access Plans — India</h2>
+            <p className="text-slate-500 mt-3 text-sm max-w-xl mx-auto">Choose a plan that fits your practice schedule.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {config.indianPricing.sort((a,b) => a.order - b.order).map(plan => (
@@ -91,8 +91,9 @@ export default function ServerAccess() {
         </div>
 
         <div>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-display font-extrabold text-slate-800 tracking-tight">Access Plans (International)</h2>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-display font-extrabold text-slate-800 tracking-tight">Access Plans — International</h2>
+            <p className="text-slate-500 mt-3 text-sm max-w-xl mx-auto">Pricing in USD for international learners.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {config.internationalPricing.sort((a,b) => a.order - b.order).map(plan => (
@@ -108,10 +109,10 @@ export default function ServerAccess() {
       </section>
 
       {/* Features & How it works */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div>
-            <h2 className="text-3xl font-display font-extrabold text-slate-800 tracking-tight mb-8">Server Features</h2>
+            <h2 className="text-2xl font-display font-extrabold text-slate-800 tracking-tight mb-6">Server Features</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {config.features.map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">

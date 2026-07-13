@@ -25,7 +25,7 @@ export default function AdminLayout() {
   }
 
   if (!isAuthorized) {
-    return <Navigate to="/sign-in" replace />;
+    return <Navigate to="/admin-login" replace />;
   }
 
   // Mentor Route Guard

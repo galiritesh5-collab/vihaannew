@@ -5,7 +5,7 @@ exports.adminLogin = async (req, res) => {
     const { email, password } = req.body;
 
     // Hardcoded credentials for development as requested
-    const ADMIN_EMAIL = 'info@srivihaanconsulting.com';
+    const ADMIN_EMAIL = 'info@vihaanconsulting.com';
     const ADMIN_PASS = 'Vihaan@123';
 
     if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
@@ -21,9 +21,10 @@ exports.adminLogin = async (req, res) => {
         token,
         user: {
           id: 'admin-1',
-          name: 'Sri Vihaan Admin',
+          name: 'Admin',
           email: ADMIN_EMAIL,
           role: 'admin'
+
         }
       });
     }

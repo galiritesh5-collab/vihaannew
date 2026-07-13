@@ -1,42 +1,29 @@
 import { AdminUser } from '../types';
 import { STORAGE_KEYS } from '../../constants/storage';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth, db } from '../../config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
 export class AdminAuthService {
   static async login(email: string, password: string): Promise<AdminUser> {
-    if (!auth) throw new Error("Firebase Auth is not configured");
+    const response = await fetch('http://localhost:5000/api/auth/admin-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Verify if user is an admin by checking an 'admins' collection
-      // or hardcoding for the sake of immediate migration.
-      // If we don't have an admins collection yet, any Firebase Email/Password auth counts.
-      // (Students use Google Sign-In, so they don't have passwords).
-      const adminData: AdminUser = {
-        id: user.uid,
-        name: user.displayName || 'Admin User',
-        email: user.email || email,
-        role: 'admin',
-        avatar: user.photoURL || undefined
-      };
-
-      localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, JSON.stringify(adminData));
-      return adminData;
-    } catch (err: any) {
-      console.error("Admin login error:", err);
-      throw new Error(err.message || 'Invalid credentials');
+    const data = await response.json();
+    if (data.success && data.user) {
+      localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, JSON.stringify(data.user));
+      localStorage.setItem('admin_token', data.token); // Store token for future requests if needed
+      return data.user;
     }
+    
+    throw new Error(data.message || 'Invalid Email or Password');
   }
 
   static async logout(): Promise<void> {
-    if (auth) {
-      await signOut(auth);
-    }
     localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+    localStorage.removeItem('admin_token');
   }
 
   static getCurrentUser(): AdminUser | null {

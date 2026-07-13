@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAdminAuth } from '../hooks/useAdminAuth';
-import { AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { AdminAuthService } from '../services/AdminAuthService';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@srivihaan.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAdminAuth();
@@ -24,7 +25,7 @@ export default function AdminLogin() {
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      setError(err.message || 'Invalid Email or Password');
     } finally {
       setLoading(false);
     }
@@ -39,10 +40,10 @@ export default function AdminLogin() {
           </div>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-display font-extrabold text-white tracking-tight">
-          Admin Portal
+          Admin Login
         </h2>
         <p className="mt-2 text-center text-sm text-slate-400">
-          Authorized personnel only
+          Sri Vihaan Consulting Portal
         </p>
       </div>
 
@@ -66,6 +67,7 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="appearance-none block w-full px-4 py-3 border border-slate-600 rounded-xl shadow-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all bg-slate-900 text-white"
+                placeholder="info@vihaanconsulting.com"
               />
             </div>
 
@@ -73,13 +75,23 @@ export default function AdminLogin() {
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none block w-full px-4 py-3 border border-slate-600 rounded-xl shadow-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all bg-slate-900 text-white"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-4 py-3 border border-slate-600 rounded-xl shadow-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all bg-slate-900 text-white pr-12"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <div>

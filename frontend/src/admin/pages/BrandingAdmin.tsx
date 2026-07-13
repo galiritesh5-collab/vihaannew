@@ -3,15 +3,14 @@ import { useBrandingConfig } from '../../hooks/useBrandingConfig';
 import { db } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { BrandingConfig } from '../../types';
-import { Save, CheckCircle, Image as ImageIcon, MapPin, Phone, Mail, Link as LinkIcon, Trash2, Plus, GripVertical } from 'lucide-react';
-import ImageUploader from '../components/ImageUploader';
+import { Save, CheckCircle, Phone, Mail, Link as LinkIcon, Trash2, Plus, GripVertical } from 'lucide-react';
 
 export default function BrandingAdmin() {
   const { config, loading } = useBrandingConfig();
   const [formData, setFormData] = useState<BrandingConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'logo' | 'contact' | 'social'>('logo');
+  const [activeTab, setActiveTab] = useState<'contact' | 'social'>('contact');
 
   useEffect(() => {
     if (config) {
@@ -82,7 +81,7 @@ export default function BrandingAdmin() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Branding & Contact</h1>
-          <p className="text-slate-500">Manage website logos, contact details, and social media links</p>
+          <p className="text-slate-500">Manage contact details and social media links.<br/><span className="text-xs text-blue-600 font-medium">Logos are managed via local files at <code>src/assets/branding/</code></span></p>
         </div>
         <button
           onClick={handleSave}
@@ -103,7 +102,6 @@ export default function BrandingAdmin() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="flex border-b border-slate-200 overflow-x-auto">
           {[
-            { id: 'logo', label: 'Logos & Media', icon: ImageIcon },
             { id: 'contact', label: 'Contact Details', icon: Phone },
             { id: 'social', label: 'Social Media', icon: LinkIcon }
           ].map(tab => (
@@ -121,46 +119,7 @@ export default function BrandingAdmin() {
         </div>
 
         <div className="p-6">
-          {activeTab === 'logo' && (
-            <div className="space-y-6 max-w-2xl">
-              <div>
-                <ImageUploader 
-                  label="Main Website Logo"
-                  value={formData.logoUrl || ''}
-                  onChange={(url) => setFormData({ ...formData, logoUrl: url })}
-                  recommendedSize="320 × 90 px"
-                  recommendedFormat="PNG (Transparent Background)"
-                  recommendedWeight="Maximum 500 KB"
-                  previewClassName="max-h-16 max-w-[200px] object-contain"
-                />
-                <p className="text-xs text-slate-500 mt-2 ml-1">Recommended: 320 × 90 px, PNG with transparent background</p>
-              </div>
-              
-              <div>
-                <ImageUploader 
-                  label="Footer Logo"
-                  value={formData.footerLogoUrl || ''}
-                  onChange={(url) => setFormData({ ...formData, footerLogoUrl: url })}
-                  recommendedSize="320 × 90 px"
-                  recommendedFormat="PNG (Transparent Background)"
-                  previewClassName="max-h-16 max-w-[200px] object-contain"
-                />
-                <p className="text-xs text-slate-500 mt-2 ml-1">Recommended: 320 × 90 px</p>
-              </div>
-
-              <div>
-                <ImageUploader 
-                  label="Favicon"
-                  value={formData.faviconUrl || ''}
-                  onChange={(url) => setFormData({ ...formData, faviconUrl: url })}
-                  recommendedSize="512 × 512 px"
-                  recommendedFormat="PNG"
-                  previewClassName="w-12 h-12 object-contain"
-                />
-                <p className="text-xs text-slate-500 mt-2 ml-1">Recommended: 512 × 512 px</p>
-              </div>
-            </div>
-          )}
+          {/* Logo management removed — logos are now local files in src/assets/branding/ */}
 
           {activeTab === 'contact' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">

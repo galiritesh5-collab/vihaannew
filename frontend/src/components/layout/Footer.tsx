@@ -1,8 +1,21 @@
+/**
+ * Footer.tsx — Sri Vihaan Consulting
+ *
+ * FOOTER LOGO (LOCAL FILE — No Firebase/Firestore)
+ * ──────────────────────────────────────────────────
+ * Logo File  : src/assets/branding/footer-logo.svg  (or footer-logo.png)
+ * Recommended: 320 × 90 px | Display: 210 × 60 px | Transparent PNG (white text version)
+ *
+ * Replace the SVG file with your actual footer logo. No code change needed.
+ */
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, GraduationCap, Facebook, Instagram, Linkedin, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, GraduationCap, Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useDB } from '../../hooks/useDB';
 import { useBrandingConfig } from '../../hooks/useBrandingConfig';
 import { Youtube, Twitter, MessageCircle, Send, Phone as PhoneIcon, Link2, Github, Layout, Pin } from 'lucide-react';
+
+// Local branding asset — replace file to change footer logo, no code change needed
+import localFooterLogo from '../../assets/branding/footer-logo.svg';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,24 +30,17 @@ export default function Footer() {
           
           {/* Section 1: About */}
           <div className="space-y-4" id="footer-about">
-            <Link to="/" className="flex items-center gap-2 group pointer-events-auto shrink-0">
-              {(brandingConfig?.footerLogoUrl || brandingConfig?.logoUrl) ? (
-                <img src={brandingConfig.footerLogoUrl || brandingConfig.logoUrl} alt="Logo" className="max-h-[50px] sm:max-h-[60px] max-w-[200px] object-contain bg-white/10 p-1 rounded backdrop-blur-sm" />
-              ) : (
-                <>
-                  <div className="bg-[#1763B6] p-2 rounded-lg text-white border border-[#1d3f66]">
-                    <GraduationCap className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-display font-bold text-base text-white tracking-tight">
-                      SRI VIHAAN
-                    </span>
-                    <span className="text-[9px] font-semibold text-orange-500 tracking-widest uppercase">
-                      CONSULTING
-                    </span>
-                  </div>
-                </>
-              )}
+            <Link to="/" className="flex items-center group pointer-events-auto shrink-0">
+              {/*
+               * LOCAL FOOTER LOGO — src/assets/branding/footer-logo.svg
+               * Recommended : 320 × 90 px, transparent PNG (white text version)
+               * Display     : max-h-[54px] max-w-[200px]
+               */}
+              <img
+                src={localFooterLogo}
+                alt="Sri Vihaan Consulting"
+                className="max-h-[48px] sm:max-h-[54px] max-w-[180px] sm:max-w-[200px] object-contain transition-opacity group-hover:opacity-90"
+              />
             </Link>
             
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
