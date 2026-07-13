@@ -82,11 +82,16 @@ export class MockDB {
       const json = await res.json();
       if (json.success && json.data) {
         cachedDB = { ...cachedDB, ...json.data };
-        isSynced = true;
-        window.dispatchEvent(new Event('db_updated'));
       }
     } catch (err) {
       console.warn('Backend not reachable, falling back to local memory.', err);
+    } finally {
+      // Always start Firestore real-time sync whether mock backend works or not
+      import('./FirestoreDBService').then(m => {
+        m.FirestoreDBService.subscribeToAll();
+      });
+      isSynced = true;
+      window.dispatchEvent(new Event('db_updated'));
     }
   }
 
@@ -122,17 +127,15 @@ export class MockDB {
     (db[collection] as any[]).push(item);
     this.set(db);
 
-    // Sync to Firestore if students
-    if (collection === 'students' && firestoreDb) {
-      const uid = item.uid || item.id;
-      if (uid) {
-        setDoc(doc(firestoreDb, 'students', uid), item, { merge: true }).catch(err => {
-          console.error("Firestore sync error in MockDB.addItem:", err);
-        });
-      }
+    // Sync to Firestore for ALL collections
+    const uid = item.uid || item.id;
+    if (uid && firestoreDb) {
+      import('./FirestoreDBService').then(m => {
+        m.FirestoreDBService.upsert(collection, uid, item);
+      });
     }
 
-    // Backend update
+    // Backend update (legacy/mock)
     try {
       await fetch(`${API_URL}/db/${String(collection)}`, {
         method: 'POST',
@@ -140,32 +143,27 @@ export class MockDB {
         body: JSON.stringify(item)
       });
     } catch (err) {
-      console.error(err);
+      console.warn('MockDB backend not reachable for addItem');
     }
   }
 
   static async updateItem(collection: keyof DatabaseSchema, id: string, item: any) {
     // Optimistic UI update
     const db = this.get();
-    const index = (db[collection] as any[]).findIndex(i => i.id === id);
+    const index = (db[collection] as any[]).findIndex(i => (i.id === id || i.uid === id));
     if (index > -1) {
       (db[collection] as any[])[index] = { ...((db[collection] as any[])[index]), ...item };
       this.set(db);
     }
 
-    // Sync to Firestore if students
-    if (collection === 'students' && firestoreDb) {
-      const currentDB = this.get();
-      const student = (currentDB.students || []).find((s: any) => s.id === id);
-      const uid = student?.uid || id;
-      if (uid) {
-        setDoc(doc(firestoreDb, 'students', uid), item, { merge: true }).catch(err => {
-          console.error("Firestore sync error in MockDB.updateItem:", err);
-        });
-      }
+    // Sync to Firestore for ALL collections
+    if (firestoreDb && id) {
+      import('./FirestoreDBService').then(m => {
+        m.FirestoreDBService.upsert(collection, id, item);
+      });
     }
 
-    // Backend update
+    // Backend update (legacy/mock)
     try {
       await fetch(`${API_URL}/db/${String(collection)}/${id}`, {
         method: 'PUT',
@@ -173,36 +171,31 @@ export class MockDB {
         body: JSON.stringify(item)
       });
     } catch (err) {
-      console.error(err);
+      console.warn('MockDB backend not reachable for updateItem');
     }
   }
 
   static async deleteItem(collection: keyof DatabaseSchema, id: string) {
-    // Sync to Firestore if students
-    if (collection === 'students' && firestoreDb) {
-      const currentDB = this.get();
-      const student = (currentDB.students || []).find((s: any) => s.id === id);
-      const uid = student?.uid || id;
-      if (uid) {
-        deleteDoc(doc(firestoreDb, 'students', uid)).catch(err => {
-          console.error("Firestore sync error in MockDB.deleteItem:", err);
-        });
-      }
+    // Sync to Firestore for ALL collections
+    if (firestoreDb && id) {
+      import('./FirestoreDBService').then(m => {
+        m.FirestoreDBService.delete(collection, id);
+      });
     }
 
     // Optimistic UI update
     const db = this.get();
-    (db[collection] as any[]) = (db[collection] as any[]).filter(i => i.id !== id);
+    (db[collection] as any[]) = (db[collection] as any[]).filter(i => (i.id !== id && i.uid !== id));
     this.set(db);
 
-    // Backend update
+    // Backend update (legacy/mock)
     try {
       await fetch(`${API_URL}/db/${String(collection)}/${id}`, {
         method: 'DELETE',
         headers: await getHeaders()
       });
     } catch (err) {
-      console.error(err);
+      console.warn('MockDB backend not reachable for deleteItem');
     }
   }
 }

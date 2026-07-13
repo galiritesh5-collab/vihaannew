@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import {
   Server, LayoutDashboard, Users, UserCog, BookOpen, Layers, 
   FileText, Star, Calendar as CalendarIcon, Bell, HelpCircle, 
-  Settings, LogOut, Menu, X, ChevronDown, ShieldCheck, Inbox, Search, Palette
+  Settings, LogOut, Menu, X, ChevronDown, ShieldCheck, Inbox, Search, Palette, IndianRupee
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBrandingConfig } from '../../hooks/useBrandingConfig';
@@ -51,6 +51,7 @@ export default function AdminLayout() {
     { name: 'Courses', path: '/admin/courses', icon: BookOpen },
     { name: 'Batches', path: '/admin/batches', icon: Layers },
     { name: 'Server Access', path: '/admin/server-access', icon: Server },
+    { name: 'Accounts', path: '/admin/accounts', icon: IndianRupee },
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Reviews', path: '/admin/reviews', icon: Star },
     { name: 'FAQs', path: '/admin/faqs', icon: HelpCircle },

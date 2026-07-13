@@ -65,6 +65,14 @@ export interface BatchPlannerWeek {
   topics: string[];
 }
 
+export interface SubTopic {
+  id: string;
+  title: string;
+  date: string;
+  notes?: string;
+  status: 'Upcoming' | 'Completed' | 'Cancelled';
+}
+
 export interface BatchSession {
   id: string;
   batchId: string;
@@ -74,6 +82,8 @@ export interface BatchSession {
   status: 'Upcoming' | 'Live' | 'Completed';
   meetingLink?: string;
   recordingUrl?: string;
+  subTopics?: SubTopic[];
+  syllabusIndex?: number;
 }
 
 export interface StudyMaterial {

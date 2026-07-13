@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDB } from '../../hooks/useDB';
-import { Send, ArrowLeft, Users, Calendar, Video, FileText, CheckSquare, MessageSquare, Star, Settings, Plus, PlayCircle, Edit2, Trash2, HelpCircle } from 'lucide-react';
+import { Send, ArrowLeft, Users, Calendar, Video, FileText, CheckSquare, MessageSquare, Star, Settings, Plus, PlayCircle, Edit2, Trash2, HelpCircle, X } from 'lucide-react';
 import { MockDB } from '../../services/MockDB';
 import { useAuth } from '../../contexts/AuthContext';
 import { BatchPlannerWeek, BatchSession, StudyMaterial, CourseRating, SessionFeedback } from '../../types';
@@ -867,19 +867,41 @@ function CourseCalendarTab({ batchId }: { batchId: string }) {
       date: override?.date || '',
       time: override?.time || '',
       status: (override?.status || 'Upcoming') as 'Upcoming' | 'Live' | 'Completed',
-      meetingLink: override?.meetingLink || '',
-      recordingUrl: override?.recordingUrl || '',
+      subTopics: override?.subTopics || [],
       id: override?.id || null,
     };
   });
 
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<{ date: string; time: string; status: string; meetingLink: string; recordingUrl: string }>({ date: '', time: '', status: 'Upcoming', meetingLink: '', recordingUrl: '' });
+  const [editForm, setEditForm] = useState<{ date: string; time: string; status: string; subTopics: import('../../types').SubTopic[] }>({ date: '', time: '', status: 'Upcoming', subTopics: [] });
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
   const openEdit = (idx: number) => {
     const s = mergedSessions[idx];
-    setEditForm({ date: s.date, time: s.time, status: s.status, meetingLink: s.meetingLink, recordingUrl: s.recordingUrl });
+    setEditForm({ date: s.date, time: s.time, status: s.status, subTopics: [...(s.subTopics || [])] });
     setEditingIdx(idx);
+    setExpandedRow(idx); // Expand to show subtopics while editing
+  };
+
+  const addSubTopic = () => {
+    setEditForm(f => ({
+      ...f,
+      subTopics: [...f.subTopics, { id: `st-${Date.now()}`, title: '', date: '', status: 'Upcoming', notes: '' }]
+    }));
+  };
+
+  const updateSubTopic = (stId: string, field: string, value: string) => {
+    setEditForm(f => ({
+      ...f,
+      subTopics: f.subTopics.map(st => st.id === stId ? { ...st, [field]: value } : st)
+    }));
+  };
+
+  const deleteSubTopic = (stId: string) => {
+    setEditForm(f => ({
+      ...f,
+      subTopics: f.subTopics.filter(st => st.id !== stId)
+    }));
   };
 
   const saveEdit = () => {
@@ -892,8 +914,7 @@ function CourseCalendarTab({ batchId }: { batchId: string }) {
       date: editForm.date,
       time: editForm.time,
       status: editForm.status as any,
-      meetingLink: editForm.meetingLink,
-      recordingUrl: editForm.recordingUrl,
+      subTopics: editForm.subTopics,
     };
     if (s.id) {
       MockDB.updateItem('batchSessions', s.id, payload);
@@ -901,7 +922,7 @@ function CourseCalendarTab({ batchId }: { batchId: string }) {
       MockDB.addItem('batchSessions', payload);
     }
 
-    // Update progress for enrolled students
+    // Update progress for enrolled students based on COMPLETED Main Topics
     const allSessions = db.batchSessions?.filter((ss: any) => ss.batchId === batchId) || [];
     const total = syllabus.length || 1;
     const completedCount = [...allSessions.filter((ss: any) => ss.id !== s.id), { ...payload }].filter((ss: any) => ss.status === 'Completed').length;
@@ -970,31 +991,59 @@ function CourseCalendarTab({ batchId }: { batchId: string }) {
                 <option value="Completed">Completed</option>
               </select>
             </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Meeting Link</label>
-              <input type="url" value={editForm.meetingLink} onChange={e => setEditForm(f => ({ ...f, meetingLink: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://..." />
-            </div>
-            {editForm.status === 'Completed' && (
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Recording URL</label>
-                <input type="url" value={editForm.recordingUrl} onChange={e => setEditForm(f => ({ ...f, recordingUrl: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://..." />
-              </div>
-            )}
           </div>
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => setEditingIdx(null)} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+          
+          {/* Subtopics Editor */}
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="text-sm font-bold text-slate-700">Sub Topics</h4>
+              <button onClick={addSubTopic} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                <Plus className="w-3 h-3" /> Add Subtopic
+              </button>
+            </div>
+            <div className="space-y-3">
+              {editForm.subTopics.map((st, i) => (
+                <div key={st.id} className="grid grid-cols-12 gap-2 items-start bg-white p-2 rounded border border-slate-200">
+                  <div className="col-span-4">
+                    <input type="text" placeholder="Subtopic Title" value={st.title} onChange={e => updateSubTopic(st.id, 'title', e.target.value)} className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                  </div>
+                  <div className="col-span-3">
+                    <input type="date" value={st.date} onChange={e => updateSubTopic(st.id, 'date', e.target.value)} className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                  </div>
+                  <div className="col-span-2">
+                    <select value={st.status} onChange={e => updateSubTopic(st.id, 'status', e.target.value)} className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                      <option value="Upcoming">Upcoming</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <input type="text" placeholder="Notes (optional)" value={st.notes || ''} onChange={e => updateSubTopic(st.id, 'notes', e.target.value)} className="w-full px-2 py-1.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                  </div>
+                  <div className="col-span-1 flex justify-center mt-1">
+                    <button onClick={() => deleteSubTopic(st.id)} className="text-red-400 hover:text-red-600 p-1"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              ))}
+              {editForm.subTopics.length === 0 && (
+                <p className="text-xs text-slate-400 italic">No subtopics added.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <button type="button" onClick={() => { setEditingIdx(null); setExpandedRow(null); }} className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
             <button type="button" onClick={saveEdit} className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">Save Changes</button>
           </div>
         </div>
       )}
-
 
       {/* Merged sessions table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">#</th>
+              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider w-12">#</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Topic (from Syllabus)</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Date & Time</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
@@ -1003,57 +1052,91 @@ function CourseCalendarTab({ batchId }: { batchId: string }) {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {mergedSessions.map((s, idx) => (
-              <tr key={idx} className={`hover:bg-slate-50 ${s.status === 'Completed' ? 'opacity-75' : ''}`}>
-                <td className="px-4 py-3">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
-                </td>
-                <td className="px-4 py-3 text-sm text-slate-800 font-medium max-w-xs">
-                  <span className={s.status === 'Completed' ? 'line-through text-slate-400' : ''}>{s.topic}</span>
-                  {s.meetingLink && s.status !== 'Completed' && (
-                    <a href={s.meetingLink} target="_blank" rel="noreferrer" className="ml-2 text-indigo-500 text-xs hover:underline">[Join]</a>
-                  )}
-                  {s.recordingUrl && s.status === 'Completed' && (
-                    <a href={s.recordingUrl} target="_blank" rel="noreferrer" className="ml-2 text-emerald-500 text-xs hover:underline">[Recording]</a>
-                  )}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {s.date ? (
-                    <>
-                      <p className="font-bold text-slate-800 text-sm">{s.date}</p>
-                      <p className="text-xs text-slate-500">{s.time}</p>
-                    </>
-                  ) : (
-                    <span className="text-xs text-slate-400 italic">Not scheduled</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                    s.status === 'Live' ? 'bg-orange-50 text-orange-600' :
-                    s.status === 'Completed' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
-                  }`}>
-                    {s.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  <button onClick={() => openEdit(idx)} className="text-indigo-600 hover:text-indigo-800 text-xs font-bold p-1">Edit</button>
-                  {s.status !== 'Completed' && (
-                    <button
-                      onClick={() => {
-                        const payload = { batchId, syllabusIndex: idx, topic: s.topic, date: s.date || new Date().toISOString().split('T')[0], time: s.time, status: 'Completed' as const, meetingLink: s.meetingLink, recordingUrl: s.recordingUrl };
-                        if (s.id) { MockDB.updateItem('batchSessions', s.id, payload); } else { MockDB.addItem('batchSessions', payload); }
-                        const allS = db.batchSessions?.filter((ss: any) => ss.batchId === batchId) || [];
-                        const total2 = syllabus.length || 1;
-                        const done = [...allS.filter((ss: any) => ss.id !== s.id), { ...payload }].filter((ss: any) => ss.status === 'Completed').length;
-                        const prog = Math.round((done / total2) * 100);
-                        (batch?.studentIds || []).forEach((sid: string) => MockDB.updateItem('students', sid, { progress: prog }));
-                      }}
-                      className="text-emerald-600 hover:text-emerald-800 text-xs font-bold p-1"
-                    >
-                      ✓ Done
-                    </button>
-                  )}
-                </td>
-              </tr>
+              <React.Fragment key={idx}>
+                <tr className={`hover:bg-slate-50 ${s.status === 'Completed' ? 'opacity-75' : ''}`}>
+                  <td className="px-4 py-3">
+                    <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-800 font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className={s.status === 'Completed' ? 'line-through text-slate-400' : ''}>{s.topic}</span>
+                      {s.subTopics && s.subTopics.length > 0 && (
+                        <button 
+                          onClick={() => setExpandedRow(expandedRow === idx ? null : idx)}
+                          className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold hover:bg-slate-200 transition-colors"
+                        >
+                          {s.subTopics.length} Subtopics {expandedRow === idx ? '▲' : '▼'}
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {s.date ? (
+                      <>
+                        <p className="font-bold text-slate-800 text-sm">{s.date}</p>
+                        <p className="text-xs text-slate-500">{s.time}</p>
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">Not scheduled</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                      s.status === 'Live' ? 'bg-orange-50 text-orange-600' :
+                      s.status === 'Completed' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                    }`}>
+                      {s.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-2">
+                    <button onClick={() => openEdit(idx)} className="text-indigo-600 hover:text-indigo-800 text-xs font-bold p-1">Edit</button>
+                    {s.status !== 'Completed' && (
+                      <button
+                        onClick={() => {
+                          const payload = { batchId, syllabusIndex: idx, topic: s.topic, date: s.date || new Date().toISOString().split('T')[0], time: s.time, status: 'Completed' as const, subTopics: s.subTopics };
+                          if (s.id) { MockDB.updateItem('batchSessions', s.id, payload); } else { MockDB.addItem('batchSessions', payload); }
+                          const allS = db.batchSessions?.filter((ss: any) => ss.batchId === batchId) || [];
+                          const total2 = syllabus.length || 1;
+                          const done = [...allS.filter((ss: any) => ss.id !== s.id), { ...payload }].filter((ss: any) => ss.status === 'Completed').length;
+                          const prog = Math.round((done / total2) * 100);
+                          (batch?.studentIds || []).forEach((sid: string) => MockDB.updateItem('students', sid, { progress: prog }));
+                        }}
+                        className="text-emerald-600 hover:text-emerald-800 text-xs font-bold p-1"
+                      >
+                        ✓ Done
+                      </button>
+                    )}
+                  </td>
+                </tr>
+                {/* Expandable Subtopics Row */}
+                {expandedRow === idx && s.subTopics && s.subTopics.length > 0 && (
+                  <tr className="bg-slate-50/50">
+                    <td colSpan={5} className="px-4 py-3">
+                      <div className="pl-12 pr-4 py-2 space-y-2 border-l-2 border-indigo-200 ml-4">
+                        {s.subTopics.map(st => (
+                          <div key={st.id} className="flex items-start justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                            <div>
+                              <p className={`text-sm font-bold ${st.status === 'Completed' ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                                {st.title}
+                              </p>
+                              {st.notes && <p className="text-xs text-slate-500 mt-1 italic">{st.notes}</p>}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs font-bold text-slate-600">{st.date}</p>
+                              <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                st.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                                st.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {st.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
             {mergedSessions.length === 0 && (
               <tr><td colSpan={5} className="text-center py-8 text-slate-500">Add syllabus topics to the course to populate this calendar.</td></tr>

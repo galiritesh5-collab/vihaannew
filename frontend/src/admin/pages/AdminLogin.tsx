@@ -56,12 +56,6 @@ export default function AdminLogin() {
               </div>
             )}
             
-            <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-lg text-xs text-indigo-300 mb-6">
-              <strong>Demo Login:</strong><br/>
-              Email: admin@srivihaan.com<br/>
-              Password: admin123
-            </div>
-
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
                 Email address
